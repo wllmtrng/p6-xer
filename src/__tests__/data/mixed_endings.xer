@@ -1,0 +1,6 @@
+ERMHDR	24.8	2024-09-08	Project	test	firstname lastname	dbxDatabaseNoName	Project Management Cloud	USD
+%T	TASK\r\n
+%F	Task_ID	Task_Name	Start_Date\r
+%R	1000	Task 1	2024-01-01\n
+%R	1001	Task 2	2024-01-02\r\n
+%E 

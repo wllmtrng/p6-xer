@@ -1,0 +1,14 @@
+ERMHDR	24.8	2024-09-08	Project	test	firstname lastname	dbxDatabaseNoName	Project Management Cloud	USD
+
+%V	17.7.0
+%P	Test Project
+%T	TASK
+%F	Task_ID	Task_Name	Start_Date	Duration	Status
+%R	1000	Task 1	2024-01-01	5d	Not Started
+%R	1001	Task 2	2024-01-02	3d	In Progress
+%E
+
+%T	TASKPRED
+%F	Pred_Task_ID	Succ_Task_ID	Pred_Type
+%R	1000	1001	FS
+%E 

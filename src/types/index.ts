@@ -11,12 +11,32 @@ export interface XerData {
 }
 
 export interface XerParserOptions {
-  encoding?: BufferEncoding;
+  encoding?: string | null;
   skipEmptyTables?: boolean;
+  fallbackEncoding?: string;
 }
 
 export interface ExportOptions {
   outputPath: string;
   format?: 'xlsx' | 'json' | 'csv';
   sheetNamePrefix?: string;
+}
+
+export interface EncodingDetectionResult {
+  encoding: string;
+  confidence: number;
+}
+
+export class XerParserError extends Error {
+  constructor(message: string, public readonly cause?: Error) {
+    super(message);
+    this.name = 'XerParserError';
+  }
+}
+
+export class EncodingError extends XerParserError {
+  constructor(message: string, public readonly detectedEncoding?: string) {
+    super(message);
+    this.name = 'EncodingError';
+  }
 } 

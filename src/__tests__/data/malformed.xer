@@ -1,0 +1,48 @@
+ERMHDR	24.8	2024-09-08	Project	test	firstname lastname	dbxDatabaseNoName	Project Management Cloud	USD
+
+%T	ERMHDR
+%F	version	rmversion	findate	strtdate	proj_id	export_date	export_user
+%R	17.7.0	PPM 17.7.0	invalid-date		missing-proj-id		
+%E
+
+%T	TASK
+%F	task_id	task_name	start_date	duration
+%R	1000	Task with extra columns	2024-01-01	5d	extra1	extra2
+%R	Missing columns
+%R	1002	Task with invalid date	invalid-date	5d
+%R	1003	Task with invalid duration	2024-01-01	invalid
+%E
+
+%T	TASKPRED
+%F	pred_task_id	task_id	pred_type
+%R	1000		FS
+%R		1002	FS
+%R	1001	1002
+%E
+
+%T	CALENDAR
+%F	clndr_id	clndr_name	day_hr_cnt
+%R	1	Calendar with missing numeric	
+%R	2	Calendar with invalid numeric	invalid
+%R	3	Calendar with extra decimals	8.123456789
+%E
+
+%T	TABLE_WITHOUT_FIELDS
+%R	This row should be ignored
+%R	This row too
+%E
+
+%T	EMPTY_TABLE
+%F	field1	field2	field3
+%E
+
+%T	DUPLICATE_FIELDS
+%F	field1	field2	field1
+%R	value1	value2	value3
+%E
+
+%T	INVALID_UTF8
+%F	field1	field2
+%R	valid	����
+%R	����	valid
+%E 

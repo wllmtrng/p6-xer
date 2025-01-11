@@ -1,0 +1,58 @@
+ERMHDR	24.8	2024-09-08	Project	test	firstname lastname	dbxDatabaseNoName	Project Management Cloud	USD
+%V	17.7.0
+%P	Comprehensive Test Project
+%T	PROJECT
+%F	proj_id	proj_short_name	start_date	finish_date	last_recalc_date	plan_start_date	plan_end_date	currency_id
+%R	1000	TEST_PROJ	2024-01-01	2024-12-31	2024-01-15	2024-01-01	2024-12-31	USD
+%E
+
+%T	CALENDAR
+%F	clndr_id	clndr_name	day_hr_cnt	week_hr_cnt	month_hr_cnt	year_hr_cnt	base_clndr_id
+%R	1	Standard 5 Day	8.00	40.00	172.00	2000.00	
+%R	2	24/7	24.00	168.00	720.00	8760.00	
+%E
+
+%T	TASK
+%F	task_id	task_code	task_name	start_date	end_date	duration	calendar_id	status_code	total_float	free_float	phys_complete_pct
+%R	1000	A1000	Project Start	2024-01-01	2024-01-01	0d	1	TK_NotStart	0	0	0
+%R	1001	A1001	Planning Phase	2024-01-02	2024-01-31	22d	1	TK_Active	5	5	25
+%R	1002	A1002	Design Phase	2024-02-01	2024-03-15	32d	1	TK_Active	10	0	15
+%R	1003	A1003	Implementation	2024-03-16	2024-11-30	185d	1	TK_NotStart	0	0	0
+%R	1004	A1004	Project End	2024-12-31	2024-12-31	0d	1	TK_NotStart	0	0	0
+%E
+
+%T	TASKPRED
+%F	task_pred_id	pred_task_id	task_id	pred_type	lag_hr_cnt	float_path	aref
+%R	1	1000	1001	FS	0	Y	N
+%R	2	1001	1002	FS	0	Y	N
+%R	3	1002	1003	FS	40	Y	N
+%R	4	1003	1004	FS	0	Y	N
+%E
+
+%T	RSRC
+%F	rsrc_id	rsrc_name	rsrc_short_name	rsrc_title_name	parent_rsrc_id	rsrc_type	max_qty_per_hr	cost_per_qty	calendar_id
+%R	100	John Smith	JSMITH	Senior Engineer		L	1.00	150.00	1
+%R	101	Jane Doe	JDOE	Project Manager		L	1.00	175.00	1
+%R	102	Equipment A	EQUIP_A	Heavy Equipment		N	2.00	500.00	2
+%E
+
+%T	TASKRSRC
+%F	taskrsrc_id	task_id	rsrc_id	remain_qty	target_qty	remain_cost	target_cost	act_reg_cost	act_ot_cost
+%R	1	1001	101	176.00	176.00	30800.00	30800.00	0.00	0.00
+%R	2	1002	100	256.00	256.00	38400.00	38400.00	0.00	0.00
+%R	3	1003	102	100.00	100.00	50000.00	50000.00	0.00	0.00
+%E
+
+%T	UDFVALUE
+%F	udf_type_id	fk_id	proj_id	udf_date	udf_number	udf_text	udf_code_id
+%R	1	1001	1000			High Priority	PRI_HIGH
+%R	2	1002	1000	2024-01-15				
+%R	3	1003	1000		500000.00			
+%E
+
+%T	PROJWBS
+%F	wbs_id	proj_id	obs_id	seq_num	proj_node_flag	sum_data_flag	status_code	wbs_short_name	wbs_name	parent_wbs_id	ev_user_pct	ev_etc_user_value
+%R	100	1000		1	Y	Y	WBS_Open	L1	Level 1		0.00	0.00
+%R	101	1000		1.1	N	Y	WBS_Open	L1.1	Planning	100	0.00	0.00
+%R	102	1000		1.2	N	Y	WBS_Open	L1.2	Execution	100	0.00	0.00
+%E 

@@ -1,0 +1,33 @@
+ERMHDR	24.8	2024-09-08	Project	test	firstname lastname	dbxDatabaseNoName	Project Management Cloud	USD
+%T	SPECIAL_CHARS
+%F	id	description	notes
+%R	1	Project résumé	Contains açaí & café
+%R	2	über den Büros	Straße & höhe
+%R	3	русский текст	проект и задача
+%R	4	汉字测试	项目和任务
+%R	5	🏗️ Construction	📅 Schedule
+%E
+
+%T	MIXED_ENCODINGS
+%F	id	name	description
+%R	1	João	São Paulo Office
+%R	2	María	España Branch
+%R	3	François	Château Project
+%R	4	Σωκράτης	Ελλάδα Office
+%E
+
+%T	EXTENDED_ASCII
+%F	id	symbol	description
+%R	1	±	Plus-minus
+%R	2	©	Copyright
+%R	3	®	Registered
+%R	4	°	Degree
+%R	5	µ	Micro
+%E
+
+%T	CONTROL_CHARS
+%F	id	name	notes
+%R	1	Test\tTab	Note\nNewline
+%R	2	Bell\a	Backspace\b
+%R	3	Return\r	Escape\e
+%E 

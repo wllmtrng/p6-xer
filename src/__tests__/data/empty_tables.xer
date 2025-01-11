@@ -1,0 +1,14 @@
+ERMHDR	24.8	2024-09-08	Project	test	firstname lastname	dbxDatabaseNoName	Project Management Cloud	USD
+%P	Empty Tables Test
+%T	EMPTY_TABLE1
+%F	Field1	Field2	Field3
+%E
+
+%T	TASK
+%F	Task_ID	Task_Name	Start_Date
+%R	1000	Task 1	2024-01-01
+%E
+
+%T	EMPTY_TABLE2
+%F	FieldA	FieldB
+%E 
