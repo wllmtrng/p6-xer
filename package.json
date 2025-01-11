@@ -31,7 +31,7 @@
     "construction"
   ],
   "author": "William Truong",
-  "license": "MIT",
+  "license": "LGPL-3.0-only",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/wllmtrng/p6-xer.git"
