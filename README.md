@@ -1,19 +1,22 @@
-# P6-XER Parser
+# P6 XER Parser
 
-A TypeScript module for parsing and processing Primavera P6 XER files. This tool allows you to extract data from XER files and export it to various formats, with the current implementation supporting Excel (XLSX) export.
+A TypeScript module for parsing and processing Primavera P6 XER files. This package provides both synchronous and asynchronous methods for parsing XER files and exporting them to Excel format.
 
 ## Features
 
 - Parse Primavera P6 XER files
-- Export data to Excel format (each table as a separate sheet)
-- TypeScript support
+- Support for both synchronous and asynchronous operations
+- Export to Excel (XLSX) format
+- Automatic encoding detection
 - Command-line interface (CLI)
-- Unit tested
+- TypeScript support with type definitions
+- Handles malformed data gracefully
+- Supports empty tables and special characters
 
 ## Installation
 
 ```bash
-npm install p6-xer
+npm install @wllmtrng/p6-xer
 ```
 
 ## Usage
@@ -21,52 +24,106 @@ npm install p6-xer
 ### As a Module
 
 ```typescript
-import { XerParser } from 'p6-xer';
+import { XerParser } from '@wllmtrng/p6-xer';
 
-const parser = new XerParser();
-await parser.parse('path/to/file.xer');
-await parser.exportToXlsx('output.xlsx');
+// Create a parser instance
+const parser = new XerParser({
+    skipEmptyTables: false // optional
+});
+
+// Async usage
+async function parseXerAsync() {
+    const data = await parser.parse('path/to/file.xer');
+    await parser.exportToXlsx(data, {
+        outputPath: 'output.xlsx',
+        sheetNamePrefix: 'PREFIX_' // optional
+    });
+}
+
+// Sync usage
+function parseXerSync() {
+    const data = parser.parseSync('path/to/file.xer');
+    parser.exportToXlsxSync(data, {
+        outputPath: 'output.xlsx'
+    });
+}
 ```
 
 ### Command Line Interface
 
 ```bash
-# Export XER file to Excel
-npx p6-xer export input.xer -o output.xlsx
+# Install globally
+npm install -g @wllmtrng/p6-xer
 
-# Show help
-npx p6-xer --help
+# Export XER to Excel
+xer-parser export input.xer -o output.xlsx
+
+# With options
+xer-parser export input.xer -o output.xlsx -p PREFIX --skip-empty
 ```
 
-## Options
+## API Reference
 
-### Parser Options
+### `XerParser`
 
-- `encoding`: Input file encoding (default: 'utf8')
-- `skipEmptyTables`: Skip tables with no data (default: false)
+#### Constructor Options
 
-### Export Options
+```typescript
+interface XerParserOptions {
+    encoding?: BufferEncoding;     // Optional encoding override
+    skipEmptyTables?: boolean;     // Skip tables with no rows
+}
+```
 
-- `-o, --output`: Output file path (default: 'output.xlsx')
-- `-p, --prefix`: Sheet name prefix
-- `--skip-empty`: Skip empty tables
+#### Methods
 
-## Development
+- `parse(filePath: string): Promise<XerData>`
+- `parseSync(filePath: string): XerData`
+- `exportToXlsx(data: XerData, options: ExportOptions): Promise<void>`
+- `exportToXlsxSync(data: XerData, options: ExportOptions): void`
 
-```bash
-# Install dependencies
-npm install
+#### Types
 
-# Run tests
-npm test
+```typescript
+interface XerData {
+    tables: XerTable[];
+    header?: {
+        version: string;
+        date: string;
+        project: string;
+        id: string;
+        user: string;
+        database: string;
+        system: string;
+        currency: string;
+    };
+}
 
-# Build
-npm run build
+interface XerTable {
+    name: string;
+    fields: string[];
+    rows: Record<string, string>[];
+}
+
+interface ExportOptions {
+    outputPath: string;
+    sheetNamePrefix?: string;
+}
+```
+
+## CLI Options
+
+```
+Options:
+  -o, --output <path>   output file path (default: "output.xlsx")
+  -p, --prefix <prefix> sheet name prefix
+  --skip-empty          skip empty tables
+  -h, --help           display help for command
 ```
 
 ## License
 
-ISC
+MIT
 
 ## Contributing
 
