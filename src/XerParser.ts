@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as chardet from 'chardet';
 import * as iconv from 'iconv-lite';
+import * as XLSX from 'xlsx';
 
 export class XerParserError extends Error {
     constructor(message: string) {
@@ -39,6 +40,11 @@ export interface XerData {
 export interface XerParserOptions {
     encoding?: BufferEncoding;
     skipEmptyTables?: boolean;
+}
+
+export interface ExportOptions {
+    outputPath: string;
+    sheetNamePrefix?: string;
 }
 
 export class XerParser {
@@ -157,5 +163,59 @@ export class XerParser {
             }
             throw new EncodingError('Failed to detect file encoding');
         }
+    }
+
+    public async exportToXlsx(data: XerData, options: ExportOptions): Promise<void> {
+        const workbook = XLSX.utils.book_new();
+
+        // Add header information if available
+        if (data.header) {
+            const headerData = [{
+                Field: 'Version',
+                Value: data.header.version
+            }, {
+                Field: 'Date',
+                Value: data.header.date
+            }, {
+                Field: 'Project',
+                Value: data.header.project
+            }, {
+                Field: 'ID',
+                Value: data.header.id
+            }, {
+                Field: 'User',
+                Value: data.header.user
+            }, {
+                Field: 'Database',
+                Value: data.header.database
+            }, {
+                Field: 'System',
+                Value: data.header.system
+            }, {
+                Field: 'Currency',
+                Value: data.header.currency
+            }];
+
+            const headerSheet = XLSX.utils.json_to_sheet(headerData);
+            XLSX.utils.book_append_sheet(workbook, headerSheet, 'Header');
+        }
+
+        // Add each table as a separate sheet
+        data.tables.forEach(table => {
+            const sheetName = options.sheetNamePrefix 
+                ? `${options.sheetNamePrefix}_${table.name}`.substring(0, 31) 
+                : table.name.substring(0, 31);
+                
+            const worksheet = XLSX.utils.json_to_sheet(table.rows);
+            XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
+        });
+
+        // If no sheets were added, add an empty sheet
+        if (workbook.SheetNames.length === 0) {
+            const emptySheet = XLSX.utils.json_to_sheet([]);
+            XLSX.utils.book_append_sheet(workbook, emptySheet, 'Empty');
+        }
+        
+        XLSX.writeFile(workbook, options.outputPath);
     }
 } 

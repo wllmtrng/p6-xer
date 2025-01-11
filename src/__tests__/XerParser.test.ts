@@ -1,6 +1,7 @@
 import { XerParser, EncodingError, XerParserError } from '../XerParser';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as XLSX from 'xlsx';
 
 describe('XerParser', () => {
     const dataDir = path.join(__dirname, 'data');
@@ -285,6 +286,119 @@ describe('XerParser', () => {
 
             // Cleanup
             fs.unlinkSync(malformedHeaderFile);
+        });
+    });
+
+    describe('xlsx export', () => {
+        const outputDir = path.join(dataDir, 'output');
+
+        beforeAll(() => {
+            // Create output directory if it doesn't exist
+            if (!fs.existsSync(outputDir)) {
+                fs.mkdirSync(outputDir);
+            }
+        });
+
+        afterAll(() => {
+            // Clean up output directory
+            if (fs.existsSync(outputDir)) {
+                fs.rmSync(outputDir, { recursive: true });
+            }
+        });
+
+        it('should export data to xlsx format correctly', async () => {
+            const parser = new XerParser();
+            const data = await parser.parse(comprehensiveFile);
+            const outputPath = path.join(outputDir, 'test_output.xlsx');
+
+            await parser.exportToXlsx(data, { outputPath });
+
+            // Verify the file was created
+            expect(fs.existsSync(outputPath)).toBe(true);
+
+            // Read the exported file
+            const workbook = XLSX.readFile(outputPath);
+
+            // Verify header sheet
+            expect(workbook.SheetNames).toContain('Header');
+            const headerSheet = workbook.Sheets['Header'];
+            const headerData = XLSX.utils.sheet_to_json(headerSheet);
+            expect(headerData).toContainEqual({
+                Field: 'Version',
+                Value: '24.8'
+            });
+            expect(headerData).toContainEqual({
+                Field: 'Project',
+                Value: 'Project'
+            });
+
+            // Verify all tables are present
+            data.tables.forEach(table => {
+                expect(workbook.SheetNames).toContain(table.name);
+                const sheet = workbook.Sheets[table.name];
+                const sheetData = XLSX.utils.sheet_to_json(sheet);
+                expect(sheetData).toHaveLength(table.rows.length);
+            });
+        });
+
+        it('should use sheet name prefix when provided', async () => {
+            const parser = new XerParser();
+            const data = await parser.parse(comprehensiveFile);
+            const outputPath = path.join(outputDir, 'prefixed_output.xlsx');
+            const prefix = 'TEST';
+
+            await parser.exportToXlsx(data, { 
+                outputPath,
+                sheetNamePrefix: prefix
+            });
+
+            // Read the exported file
+            const workbook = XLSX.readFile(outputPath);
+
+            // Header sheet should not have prefix
+            expect(workbook.SheetNames).toContain('Header');
+
+            // All other sheets should have prefix
+            data.tables.forEach(table => {
+                const expectedName = `${prefix}_${table.name}`.substring(0, 31);
+                expect(workbook.SheetNames).toContain(expectedName);
+            });
+        });
+
+        it('should handle empty data gracefully', async () => {
+            const parser = new XerParser();
+            const emptyData = { tables: [], header: undefined };
+            const outputPath = path.join(outputDir, 'empty_output.xlsx');
+
+            await parser.exportToXlsx(emptyData, { outputPath });
+
+            // Verify the file was created
+            expect(fs.existsSync(outputPath)).toBe(true);
+
+            // Read the exported file
+            const workbook = XLSX.readFile(outputPath);
+            expect(workbook.SheetNames).toHaveLength(1);
+            expect(workbook.SheetNames[0]).toBe('Empty');
+        });
+
+        it('should truncate long sheet names to 31 characters', async () => {
+            const parser = new XerParser();
+            const longNameData = {
+                tables: [{
+                    name: 'ThisIsAReallyLongTableNameThatShouldBeTruncated',
+                    fields: ['field1'],
+                    rows: [{ field1: 'value1' }]
+                }],
+                header: undefined
+            };
+            const outputPath = path.join(outputDir, 'long_names_output.xlsx');
+
+            await parser.exportToXlsx(longNameData, { outputPath });
+
+            // Read the exported file
+            const workbook = XLSX.readFile(outputPath);
+            expect(workbook.SheetNames[0].length).toBeLessThanOrEqual(31);
+            expect(workbook.SheetNames[0]).toBe('ThisIsAReallyLongTableNameThatS');
         });
     });
 }); 
