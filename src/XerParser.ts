@@ -112,48 +112,51 @@ export class XerParser {
         };
     }
 
-    public async parse(filePath: string): Promise<XerData> {
+    private parseContent(content: string): XerData {
+        const lines = content.split(/\r?\n/);
+        const data: XerData = {
+            tables: []
+        };
+
+        // Check for ERMHDR line at the start
+        if (lines.length > 0) {
+            data.header = this.parseErmhdrLine(lines[0]);
+        }
+
+        let currentTable: XerTable | null = null;
+
+        // Start from line 1 if we found a header, otherwise start from line 0
+        for (let i = data.header ? 1 : 0; i < lines.length; i++) {
+            const line = lines[i].trim();
+            if (!line) continue;
+
+            const [type, ...values] = line.split('\t');
+
+            switch (type) {
+                case '%T':
+                    currentTable = this.handleTableStart(currentTable, values, data);
+                    break;
+                case '%F':
+                    this.handleFieldDefinition(currentTable, values);
+                    break;
+                case '%R':
+                    this.handleDataRow(currentTable, values);
+                    break;
+                case '%E':
+                    currentTable = this.handleTableEnd(currentTable, data);
+                    break;
+            }
+        }
+
+        return data;
+    }
+
+    public parseSync(filePath: string): XerData {
         try {
             const buffer = fs.readFileSync(filePath);
             const encoding = this.detectEncoding(buffer);
             const content = iconv.decode(buffer, encoding);
-
-            const lines = content.split(/\r?\n/);
-            const data: XerData = {
-                tables: []
-            };
-
-            // Check for ERMHDR line at the start
-            if (lines.length > 0) {
-                data.header = this.parseErmhdrLine(lines[0]);
-            }
-
-            let currentTable: XerTable | null = null;
-
-            // Start from line 1 if we found a header, otherwise start from line 0
-            for (let i = data.header ? 1 : 0; i < lines.length; i++) {
-                const line = lines[i].trim();
-                if (!line) continue;
-
-                const [type, ...values] = line.split('\t');
-
-                switch (type) {
-                    case '%T':
-                        currentTable = this.handleTableStart(currentTable, values, data);
-                        break;
-                    case '%F':
-                        this.handleFieldDefinition(currentTable, values);
-                        break;
-                    case '%R':
-                        this.handleDataRow(currentTable, values);
-                        break;
-                    case '%E':
-                        currentTable = this.handleTableEnd(currentTable, data);
-                        break;
-                }
-            }
-
-            return data;
+            return this.parseContent(content);
         } catch (error) {
             if (error instanceof Error) {
                 throw new XerParserError(error.message);
@@ -161,6 +164,23 @@ export class XerParser {
             throw new XerParserError('Unknown error occurred while parsing XER file');
         }
     }
+
+    public async parseAsync(filePath: string): Promise<XerData> {
+        try {
+            const buffer = await fs.promises.readFile(filePath);
+            const encoding = this.detectEncoding(buffer);
+            const content = iconv.decode(buffer, encoding);
+            return this.parseContent(content);
+        } catch (error) {
+            if (error instanceof Error) {
+                throw new XerParserError(error.message);
+            }
+            throw new XerParserError('Unknown error occurred while parsing XER file');
+        }
+    }
+
+    // Alias for parseAsync for backward compatibility
+    public parse = this.parseAsync;
 
     private detectEncoding(buffer: Buffer): string {
         try {
@@ -180,7 +200,7 @@ export class XerParser {
         }
     }
 
-    public async exportToXlsx(data: XerData, options: ExportOptions): Promise<void> {
+    private exportToWorkbook(data: XerData, options: ExportOptions): XLSX.WorkBook {
         const workbook = XLSX.utils.book_new();
 
         // Add header information if available
@@ -242,7 +262,20 @@ export class XerParser {
             const emptySheet = XLSX.utils.json_to_sheet([]);
             XLSX.utils.book_append_sheet(workbook, emptySheet, 'Empty');
         }
-        
+
+        return workbook;
+    }
+
+    public exportToXlsxSync(data: XerData, options: ExportOptions): void {
+        const workbook = this.exportToWorkbook(data, options);
         XLSX.writeFile(workbook, options.outputPath);
     }
+
+    public async exportToXlsxAsync(data: XerData, options: ExportOptions): Promise<void> {
+        const workbook = this.exportToWorkbook(data, options);
+        await fs.promises.writeFile(options.outputPath, XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' }));
+    }
+
+    // Alias for exportToXlsxAsync for backward compatibility
+    public exportToXlsx = this.exportToXlsxAsync;
 } 

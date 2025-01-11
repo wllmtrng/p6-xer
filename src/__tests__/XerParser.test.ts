@@ -10,12 +10,17 @@ describe('XerParser', () => {
     const encodingsFile = path.join(dataDir, 'encodings.xer');
 
     describe('file reading', () => {
-        it('should handle file not found error', async () => {
+        it('should handle file not found error (async)', async () => {
             const parser = new XerParser();
             await expect(parser.parse('nonexistent.xer')).rejects.toThrow(XerParserError);
         });
 
-        it('should handle file permission error', async () => {
+        it('should handle file not found error (sync)', () => {
+            const parser = new XerParser();
+            expect(() => parser.parseSync('nonexistent.xer')).toThrow(XerParserError);
+        });
+
+        it('should handle file permission error (async)', async () => {
             // Create a file with no read permissions
             const protectedFile = path.join(dataDir, 'protected.xer');
             fs.writeFileSync(protectedFile, 'test');
@@ -29,7 +34,21 @@ describe('XerParser', () => {
             fs.unlinkSync(protectedFile);
         });
 
-        it('should handle empty file', async () => {
+        it('should handle file permission error (sync)', () => {
+            // Create a file with no read permissions
+            const protectedFile = path.join(dataDir, 'protected.xer');
+            fs.writeFileSync(protectedFile, 'test');
+            fs.chmodSync(protectedFile, 0o000);
+
+            const parser = new XerParser();
+            expect(() => parser.parseSync(protectedFile)).toThrow(XerParserError);
+
+            // Cleanup
+            fs.chmodSync(protectedFile, 0o666);
+            fs.unlinkSync(protectedFile);
+        });
+
+        it('should handle empty file (async)', async () => {
             // Create an empty file
             const emptyFile = path.join(dataDir, 'empty.xer');
             fs.writeFileSync(emptyFile, '');
@@ -44,13 +63,43 @@ describe('XerParser', () => {
             fs.unlinkSync(emptyFile);
         });
 
-        it('should handle file with only whitespace', async () => {
+        it('should handle empty file (sync)', () => {
+            // Create an empty file
+            const emptyFile = path.join(dataDir, 'empty.xer');
+            fs.writeFileSync(emptyFile, '');
+
+            const parser = new XerParser();
+            const data = parser.parseSync(emptyFile);
+            
+            expect(data.tables).toHaveLength(0);
+            expect(data.header).toBeUndefined();
+
+            // Cleanup
+            fs.unlinkSync(emptyFile);
+        });
+
+        it('should handle file with only whitespace (async)', async () => {
             // Create a file with only whitespace
             const whitespaceFile = path.join(dataDir, 'whitespace.xer');
             fs.writeFileSync(whitespaceFile, '  \n\t\r\n  ');
 
             const parser = new XerParser();
             const data = await parser.parse(whitespaceFile);
+            
+            expect(data.tables).toHaveLength(0);
+            expect(data.header).toBeUndefined();
+
+            // Cleanup
+            fs.unlinkSync(whitespaceFile);
+        });
+
+        it('should handle file with only whitespace (sync)', () => {
+            // Create a file with only whitespace
+            const whitespaceFile = path.join(dataDir, 'whitespace.xer');
+            fs.writeFileSync(whitespaceFile, '  \n\t\r\n  ');
+
+            const parser = new XerParser();
+            const data = parser.parseSync(whitespaceFile);
             
             expect(data.tables).toHaveLength(0);
             expect(data.header).toBeUndefined();
@@ -306,12 +355,12 @@ describe('XerParser', () => {
             }
         });
 
-        it('should export data to xlsx format correctly', async () => {
+        it('should export data to xlsx format correctly (async)', async () => {
             const parser = new XerParser();
             const data = await parser.parse(comprehensiveFile);
-            const outputPath = path.join(outputDir, 'test_output.xlsx');
+            const outputPath = path.join(outputDir, 'test_output_async.xlsx');
 
-            await parser.exportToXlsx(data, { outputPath });
+            await parser.exportToXlsxAsync(data, { outputPath });
 
             // Verify the file was created
             expect(fs.existsSync(outputPath)).toBe(true);
@@ -341,13 +390,48 @@ describe('XerParser', () => {
             });
         });
 
-        it('should use sheet name prefix when provided', async () => {
+        it('should export data to xlsx format correctly (sync)', () => {
+            const parser = new XerParser();
+            const data = parser.parseSync(comprehensiveFile);
+            const outputPath = path.join(outputDir, 'test_output_sync.xlsx');
+
+            parser.exportToXlsxSync(data, { outputPath });
+
+            // Verify the file was created
+            expect(fs.existsSync(outputPath)).toBe(true);
+
+            // Read the exported file
+            const workbook = XLSX.readFile(outputPath);
+
+            // Verify header sheet
+            expect(workbook.SheetNames).toContain('Header');
+            const headerSheet = workbook.Sheets['Header'];
+            const headerData = XLSX.utils.sheet_to_json(headerSheet);
+            expect(headerData).toContainEqual({
+                Field: 'Version',
+                Value: '24.8'
+            });
+            expect(headerData).toContainEqual({
+                Field: 'Project',
+                Value: 'Project'
+            });
+
+            // Verify all tables are present
+            data.tables.forEach(table => {
+                expect(workbook.SheetNames).toContain(table.name);
+                const sheet = workbook.Sheets[table.name];
+                const sheetData = XLSX.utils.sheet_to_json(sheet);
+                expect(sheetData).toHaveLength(table.rows.length);
+            });
+        });
+
+        it('should use sheet name prefix when provided (async)', async () => {
             const parser = new XerParser();
             const data = await parser.parse(comprehensiveFile);
-            const outputPath = path.join(outputDir, 'prefixed_output.xlsx');
+            const outputPath = path.join(outputDir, 'prefixed_output_async.xlsx');
             const prefix = 'TEST';
 
-            await parser.exportToXlsx(data, { 
+            await parser.exportToXlsxAsync(data, { 
                 outputPath,
                 sheetNamePrefix: prefix
             });
@@ -365,12 +449,36 @@ describe('XerParser', () => {
             });
         });
 
-        it('should handle empty data gracefully', async () => {
+        it('should use sheet name prefix when provided (sync)', () => {
+            const parser = new XerParser();
+            const data = parser.parseSync(comprehensiveFile);
+            const outputPath = path.join(outputDir, 'prefixed_output_sync.xlsx');
+            const prefix = 'TEST';
+
+            parser.exportToXlsxSync(data, { 
+                outputPath,
+                sheetNamePrefix: prefix
+            });
+
+            // Read the exported file
+            const workbook = XLSX.readFile(outputPath);
+
+            // Header sheet should not have prefix
+            expect(workbook.SheetNames).toContain('Header');
+
+            // All other sheets should have prefix
+            data.tables.forEach(table => {
+                const expectedName = `${prefix}_${table.name}`.substring(0, 31);
+                expect(workbook.SheetNames).toContain(expectedName);
+            });
+        });
+
+        it('should handle empty data gracefully (async)', async () => {
             const parser = new XerParser();
             const emptyData = { tables: [], header: undefined };
-            const outputPath = path.join(outputDir, 'empty_output.xlsx');
+            const outputPath = path.join(outputDir, 'empty_output_async.xlsx');
 
-            await parser.exportToXlsx(emptyData, { outputPath });
+            await parser.exportToXlsxAsync(emptyData, { outputPath });
 
             // Verify the file was created
             expect(fs.existsSync(outputPath)).toBe(true);
@@ -381,7 +489,23 @@ describe('XerParser', () => {
             expect(workbook.SheetNames[0]).toBe('Empty');
         });
 
-        it('should truncate long sheet names to 31 characters', async () => {
+        it('should handle empty data gracefully (sync)', () => {
+            const parser = new XerParser();
+            const emptyData = { tables: [], header: undefined };
+            const outputPath = path.join(outputDir, 'empty_output_sync.xlsx');
+
+            parser.exportToXlsxSync(emptyData, { outputPath });
+
+            // Verify the file was created
+            expect(fs.existsSync(outputPath)).toBe(true);
+
+            // Read the exported file
+            const workbook = XLSX.readFile(outputPath);
+            expect(workbook.SheetNames).toHaveLength(1);
+            expect(workbook.SheetNames[0]).toBe('Empty');
+        });
+
+        it('should truncate long sheet names to 31 characters (async)', async () => {
             const parser = new XerParser();
             const longNameData = {
                 tables: [{
@@ -391,9 +515,29 @@ describe('XerParser', () => {
                 }],
                 header: undefined
             };
-            const outputPath = path.join(outputDir, 'long_names_output.xlsx');
+            const outputPath = path.join(outputDir, 'long_names_output_async.xlsx');
 
-            await parser.exportToXlsx(longNameData, { outputPath });
+            await parser.exportToXlsxAsync(longNameData, { outputPath });
+
+            // Read the exported file
+            const workbook = XLSX.readFile(outputPath);
+            expect(workbook.SheetNames[0].length).toBeLessThanOrEqual(31);
+            expect(workbook.SheetNames[0]).toBe('ThisIsAReallyLongTableNameThatS');
+        });
+
+        it('should truncate long sheet names to 31 characters (sync)', () => {
+            const parser = new XerParser();
+            const longNameData = {
+                tables: [{
+                    name: 'ThisIsAReallyLongTableNameThatShouldBeTruncated',
+                    fields: ['field1'],
+                    rows: [{ field1: 'value1' }]
+                }],
+                header: undefined
+            };
+            const outputPath = path.join(outputDir, 'long_names_output_sync.xlsx');
+
+            parser.exportToXlsxSync(longNameData, { outputPath });
 
             // Read the exported file
             const workbook = XLSX.readFile(outputPath);
