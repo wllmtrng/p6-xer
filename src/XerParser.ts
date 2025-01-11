@@ -57,6 +57,43 @@ export class XerParser {
         };
     }
 
+    private handleTableStart(currentTable: XerTable | null, values: string[], data: XerData): XerTable {
+        if (currentTable && (!this.options.skipEmptyTables || currentTable.rows.length > 0)) {
+            data.tables.push(currentTable);
+        }
+        return {
+            name: values[0],
+            fields: [],
+            rows: []
+        };
+    }
+
+    private handleFieldDefinition(currentTable: XerTable | null, values: string[]): void {
+        if (currentTable) {
+            currentTable.fields = values;
+        }
+    }
+
+    private handleDataRow(currentTable: XerTable | null, values: string[]): void {
+        if (currentTable && currentTable.fields.length > 0) {
+            const row: Record<string, string> = {};
+            currentTable.fields.forEach((field, index) => {
+                row[field] = values[index] || '';
+            });
+            currentTable.rows.push(row);
+        }
+    }
+
+    private handleTableEnd(currentTable: XerTable | null, data: XerData): XerTable | null {
+        if (currentTable) {
+            if (!this.options.skipEmptyTables || currentTable.rows.length > 0) {
+                data.tables.push(currentTable);
+            }
+            return null;
+        }
+        return currentTable;
+    }
+
     private parseErmhdrLine(line: string): XerData['header'] {
         const parts = line.split('\t');
         if (parts[0] !== 'ERMHDR' || parts.length < 9) {
@@ -102,38 +139,16 @@ export class XerParser {
 
                 switch (type) {
                     case '%T':
-                        if (currentTable) {
-                            if (!this.options.skipEmptyTables || currentTable.rows.length > 0) {
-                                data.tables.push(currentTable);
-                            }
-                        }
-                        currentTable = {
-                            name: values[0],
-                            fields: [],
-                            rows: []
-                        };
+                        currentTable = this.handleTableStart(currentTable, values, data);
                         break;
                     case '%F':
-                        if (currentTable) {
-                            currentTable.fields = values;
-                        }
+                        this.handleFieldDefinition(currentTable, values);
                         break;
                     case '%R':
-                        if (currentTable && currentTable.fields.length > 0) {
-                            const row: Record<string, string> = {};
-                            currentTable.fields.forEach((field, index) => {
-                                row[field] = values[index] || '';
-                            });
-                            currentTable.rows.push(row);
-                        }
+                        this.handleDataRow(currentTable, values);
                         break;
                     case '%E':
-                        if (currentTable) {
-                            if (!this.options.skipEmptyTables || currentTable.rows.length > 0) {
-                                data.tables.push(currentTable);
-                            }
-                            currentTable = null;
-                        }
+                        currentTable = this.handleTableEnd(currentTable, data);
                         break;
                 }
             }
