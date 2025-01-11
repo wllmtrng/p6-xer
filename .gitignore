@@ -23,6 +23,7 @@ coverage/
 .env
 .env.local
 .env.*.local
+.npmrc
 
 # XER and Excel files (sample data)
 *.xer
