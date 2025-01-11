@@ -123,7 +123,7 @@ Options:
 
 ## License
 
-MIT
+LGPL-3.0-only
 
 ## Contributing
 
