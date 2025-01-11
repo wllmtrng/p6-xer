@@ -205,8 +205,20 @@ export class XerParser {
             const sheetName = options.sheetNamePrefix 
                 ? `${options.sheetNamePrefix}_${table.name}`.substring(0, 31) 
                 : table.name.substring(0, 31);
+
+            // Process rows to handle long text
+            const processedRows = table.rows.map(row => {
+                const processedRow: Record<string, string> = {};
+                for (const [key, value] of Object.entries(row)) {
+                    // Truncate values that are too long for Excel
+                    processedRow[key] = value.length > 32000 
+                        ? value.substring(0, 32000) + '... (truncated)'
+                        : value;
+                }
+                return processedRow;
+            });
                 
-            const worksheet = XLSX.utils.json_to_sheet(table.rows);
+            const worksheet = XLSX.utils.json_to_sheet(processedRows);
             XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
         });
 
