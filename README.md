@@ -16,7 +16,7 @@ A TypeScript module for parsing and processing Primavera P6 XER files. This pack
 ## Installation
 
 ```bash
-npm install @wllmtrng/p6-xer
+npm install p6-xer
 ```
 
 ## Usage
@@ -24,7 +24,7 @@ npm install @wllmtrng/p6-xer
 ### As a Module
 
 ```typescript
-import { XerParser } from '@wllmtrng/p6-xer';
+import { XerParser } from 'p6-xer';
 
 // Create a parser instance
 const parser = new XerParser({
@@ -53,7 +53,7 @@ function parseXerSync() {
 
 ```bash
 # Install globally
-npm install -g @wllmtrng/p6-xer
+npm install -g p6-xer
 
 # Export XER to Excel
 xer-parser export input.xer -o output.xlsx
