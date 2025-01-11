@@ -15,6 +15,7 @@
     "build": "tsc",
     "test": "jest",
     "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage --coverageReporters=text-summary > coverage-summary.txt || true && node scripts/update-coverage-badge.js",
     "start": "node dist/cli.js",
     "prepare": "npm run build",
     "prepublishOnly": "npm test"
@@ -45,7 +46,23 @@
     "testEnvironment": "node",
     "testMatch": [
       "**/__tests__/**/*.test.ts"
-    ]
+    ],
+    "collectCoverageFrom": [
+      "src/**/*.ts",
+      "!src/**/*.test.ts",
+      "!src/**/*.d.ts"
+    ],
+    "coverageReporters": [
+      "text-summary"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 80,
+        "functions": 80,
+        "lines": 80,
+        "statements": 80
+      }
+    }
   },
   "devDependencies": {
     "@types/jest": "^29.5.14",

@@ -1,5 +1,7 @@
 # P6 XER Parser
 
+[![Coverage](https://img.shields.io/badge/coverage-85%25-green.svg)](https://github.com/wllmtrng/p6-xer)
+
 A TypeScript module for parsing and processing Primavera P6 XER files. This package provides both synchronous and asynchronous methods for parsing XER files and exporting them to Excel format.
 
 ## Features
