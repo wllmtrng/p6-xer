@@ -1,9 +1,12 @@
 # Dependencies
 node_modules/
-package-lock.json
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# TypeScript build output
+# Build output
 dist/
+build/
 *.tsbuildinfo
 
 # IDE and editor files
@@ -13,13 +16,6 @@ dist/
 *.swo
 .DS_Store
 
-# Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
 # Test coverage
 coverage/
 
@@ -28,16 +24,7 @@ coverage/
 .env.local
 .env.*.local
 
-# Temporary files
-tmp/
-temp/
-
-# Debug files
-.debug/
-
-# Output files
+# XER and Excel files (sample data)
+*.xer
 *.xlsx
-*.csv
-*.json
-!package.json
-!tsconfig.json 
+~$* 
