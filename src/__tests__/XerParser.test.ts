@@ -37,8 +37,7 @@ describe('XerParser', () => {
             const data = await parser.parse(emptyFile);
             
             expect(data.tables).toHaveLength(0);
-            expect(data.version).toBeUndefined();
-            expect(data.project).toBeUndefined();
+            expect(data.header).toBeUndefined();
 
             // Cleanup
             fs.unlinkSync(emptyFile);
@@ -53,8 +52,7 @@ describe('XerParser', () => {
             const data = await parser.parse(whitespaceFile);
             
             expect(data.tables).toHaveLength(0);
-            expect(data.version).toBeUndefined();
-            expect(data.project).toBeUndefined();
+            expect(data.header).toBeUndefined();
 
             // Cleanup
             fs.unlinkSync(whitespaceFile);

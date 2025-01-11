@@ -24,8 +24,6 @@ export interface XerTable {
 
 export interface XerData {
     tables: XerTable[];
-    version?: string;
-    project?: string;
     header?: {
         version: string;
         date: string;
@@ -97,12 +95,6 @@ export class XerParser {
                 const [type, ...values] = line.split('\t');
 
                 switch (type) {
-                    case '%V':
-                        data.version = values[0];
-                        break;
-                    case '%P':
-                        data.project = values[0];
-                        break;
                     case '%T':
                         if (currentTable) {
                             if (!this.options.skipEmptyTables || currentTable.rows.length > 0) {
