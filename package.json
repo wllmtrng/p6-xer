@@ -1,6 +1,6 @@
 {
-  "name": "@wllmtrng/p6-xer",
-  "version": "1.0.0",
+  "name": "p6-xer",
+  "version": "0.0.1",
   "description": "A TypeScript module for parsing and processing Primavera P6 XER files",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
