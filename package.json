@@ -1,6 +1,6 @@
 {
   "name": "p6-xer",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "A TypeScript module for parsing and processing Primavera P6 XER files",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -75,6 +75,6 @@
     "chardet": "^2.0.0",
     "commander": "^13.0.0",
     "iconv-lite": "^0.6.3",
-    "xlsx": "^0.18.5"
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
   }
 }
